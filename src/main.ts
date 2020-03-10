@@ -1,7 +1,8 @@
 const Web3 = require('web3');
 var fs = require('fs');
+const fastcsv = require('fast-csv');
 
-async function main() {
+async function main(outputFile: string) {
   let contract_artifact = fs.readFileSync('OceanToken.json');
   contract_artifact = JSON.parse(contract_artifact);
   let provider = new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/41f6b8b3d74a4d3fb775a0efe458e2c9');
@@ -16,11 +17,16 @@ async function main() {
       toBlock: "latest"
   });
 
-  console.log(events.length);
-  console.log(events[0].returnValues.from);
-  console.log(events[0].returnValues.to);
-  console.log(events[0].returnValues.value);
-
+  let data = [];
+  events.forEach(function (element) {
+    data.push({
+      from: element.returnValues.from,
+      to: element.returnValues.to,
+      value: element.returnValues.value
+    });
+  });
+  const ws = fs.createWriteStream(outputFile);
+  fastcsv.write(data, { headers: true }).pipe(ws);
 }
 
-main();
+main('out.scv');
