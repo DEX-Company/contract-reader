@@ -55,6 +55,4 @@ function buildFilter(args: any, contract_ABI: any, event_name: string) {
 const args = require('yargs').argv;
 const abi = getABI(args['_'][0]);
 const filter = buildFilter(args, abi, args['_'][2]);
-console.log(filter);
-console.log(args['_']);
 main(abi, args['_'][4], args['_'][3], args['_'][1], filter);
