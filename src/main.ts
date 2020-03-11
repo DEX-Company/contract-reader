@@ -2,9 +2,12 @@ const Web3 = require('web3');
 var fs = require('fs');
 const fastcsv = require('fast-csv');
 
-async function main(inputFile: string, outputFile: string, fromBlock: number, address: string, filter: any) {
+function getABI(inputFile: string) {
   let contract_ABI = fs.readFileSync(inputFile);
-  contract_ABI = JSON.parse(contract_ABI);
+  return JSON.parse(contract_ABI);
+}
+
+async function main(contract_ABI: any, outputFile: string, fromBlock: number, address: string, filter: any) {
   let provider = new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/41f6b8b3d74a4d3fb775a0efe458e2c9');
   const web3 = new Web3(provider);
   const contract = new web3.eth.Contract(contract_ABI, address);
@@ -28,8 +31,6 @@ async function main(inputFile: string, outputFile: string, fromBlock: number, ad
   fastcsv.write(data, { headers: true }).pipe(ws);
 }
 
-const filter = {from: ['0x2B5634C42055806a59e9107ED44D43c426E58258'], to: ['0xC4B2F04E4460D072536ED900B28C06C0a79Fe774'] };
-
 function buildFilter(args: any, contract_ABI: any, event_name: string) {
   let saved_element;
   contract_ABI.forEach(function (element) {
@@ -51,4 +52,9 @@ function buildFilter(args: any, contract_ABI: any, event_name: string) {
   return filter;
 }
 
-main('OceanToken.json', 'out.scv', 9634793, '0x985dd3D42De1e256d09e1c10F112bCCB8015AD41', filter);
+const args = require('yargs').argv;
+const abi = getABI(args['_'][0]);
+const filter = buildFilter(args, abi, args['_'][2]);
+console.log(filter);
+console.log(args['_']);
+main(abi, args['_'][4], args['_'][3], args['_'][1], filter);
